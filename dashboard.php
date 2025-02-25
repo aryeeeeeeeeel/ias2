@@ -53,6 +53,16 @@ $user = $stmt->fetch();
             color: #333;
         }
 
+        h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: #007bff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
         .upload-section {
             margin-top: 20px;
         }
@@ -69,6 +79,10 @@ $user = $stmt->fetch();
             cursor: pointer;
             display: inline-block;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .file-upload:hover {
@@ -115,6 +129,10 @@ $user = $stmt->fetch();
             margin-top: 20px;
             color: #007bff;
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .logout-link:hover {
@@ -200,8 +218,16 @@ $user = $stmt->fetch();
     <div class="container">
         <button class="refresh-button" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
         <h1>Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</h1>
+        <h2>
+            <i class="fas fa-bug"></i> <!-- Malware Icon -->
+            Malware Scanner
+            <i class="fas fa-search"></i> <!-- Scanner Icon -->
+        </h2>
         <div class="upload-section">
-            <label for="file-upload" class="file-upload">Choose File</label>
+            <label for="file-upload" class="file-upload">
+                <i class="fas fa-file"></i> <!-- File Icon -->
+                Choose File
+            </label>
             <input id="file-upload" type="file" name="file" onchange="displayFileName()">
             <div class="file-name" id="file-name"></div>
             <button class="scan-button" onclick="scanFile()">
@@ -214,7 +240,10 @@ $user = $stmt->fetch();
                 Notice</a>. Please do not submit any personal information; we are not responsible for the contents of
             your submission.
         </div>
-        <a href="logout.php" class="logout-link">Logout</a>
+        <a href="logout.php" class="logout-link">
+            <i class="fas fa-sign-out-alt"></i> <!-- Logout Icon -->
+            Logout
+        </a>
     </div>
 
     <script>
