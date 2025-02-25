@@ -51,13 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Password is incorrect
             $failedAttempts++;
 
-            // Lock the account after 5 failed attempts
-            if ($failedAttempts >= 5) {
+            // Lock the account after 3 failed attempts
+            if ($failedAttempts >= 3) {
                 $lockTime = $currentTime->add(new DateInterval('PT5M'))->format('Y-m-d H:i:s');
                 $stmt = $pdo->prepare('UPDATE users SET failed_attempts = ?, lock_time = ? WHERE id = ?');
                 $stmt->execute([$failedAttempts, $lockTime, $user['id']]);
 
-                $_SESSION['error_message'] = "Too many failed attempts. Your account is locked for 5 minutes.";
+                $_SESSION['error_message'] = "Too many failed attempts. Your account is locked for 3 minutes.";
             } else {
                 // Update failed attempts
                 $stmt = $pdo->prepare('UPDATE users SET failed_attempts = ? WHERE id = ?');

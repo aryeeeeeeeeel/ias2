@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .password-toggle input[type="password"] {
-            padding-right: 10px;
+            padding-right: 15px;
         }
 
         .toggle-btn {
@@ -151,14 +151,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <body>
     <h1>Register</h1>
-    <?php if ($error): ?>
-        <p class="error"><?php echo $error; ?></p>
+    <?php if (isset($_SESSION['error_message'])): ?>
+        <p class="error"><?php echo $_SESSION['error_message'];
+        unset($_SESSION['error_message']); ?></p>
     <?php endif; ?>
-    <form method="post">
+    <form method="post" onsubmit="return validateForm()">
         <input type="text" name="first_name" placeholder="First Name" required>
         <input type="text" name="middle_name" placeholder="Middle Name (Optional)">
         <input type="text" name="last_name" placeholder="Last Name" required>
-        <input type="email" name="email" placeholder="Email" required>
+        <input type="email" name="email" id="email" placeholder="Email" required>
 
         <div class="password-toggle tooltip">
             <input type="password" name="password" id="password" placeholder="Password" required>
@@ -182,6 +183,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             const passwordInput = document.getElementById(fieldId);
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
+        }
+
+        function validateForm() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert("Please enter a valid email address.");
+                return false;
+            }
+
+            // Validate password complexity
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                alert("Password must be at least 8 characters long, with 1 uppercase letter, 1 lowercase letter, and 1 number.");
+                return false;
+            }
+
+            // Validate password match
+            if (password !== confirmPassword) {
+                alert("Passwords do not match.");
+                return false;
+            }
+
+            return true;
         }
     </script>
 </body>
