@@ -12,6 +12,12 @@ if (isset($_SESSION['error_message'])) {
     unset($_SESSION['error_message']); // Remove the message after displaying it
 }
 
+// Check for malicious attack details
+if (isset($_SESSION['malicious_attack_details'])) {
+    $maliciousAttackDetails = $_SESSION['malicious_attack_details'];
+    unset($_SESSION['malicious_attack_details']); // Remove the details after displaying them
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Get the input data
     $email = $_POST['email'];
@@ -117,7 +123,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             width: 100%;
             padding: 10px;
             background-color: #007bff;
-
             color: white;
             border: none;
             cursor: pointer;
@@ -167,11 +172,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <p class="success"><?php echo $success; ?></p>
     <?php endif; ?>
 
+    <?php if (isset($maliciousAttackDetails)): ?>
+        <script>
+            alert("<?php echo $maliciousAttackDetails['message']; ?>\nAttack Time: <?php echo $maliciousAttackDetails['attack_time']; ?>");
+        </script>
+    <?php endif; ?>
+
     <?php if (isset($_SESSION['malicious_attack_detected'])): ?>
         <script>
-            alert("We've detected malicious activity earlier. Please change your password immediately!");
+            alert("We've detected malicious activity earlier. Please change your password immediately!\nAttack Time: <?php echo $_SESSION['attack_time']; ?>");
         </script>
         <?php unset($_SESSION['malicious_attack_detected']); ?>
+        <?php unset($_SESSION['attack_time']); ?>
     <?php endif; ?>
 
     <form method="post">

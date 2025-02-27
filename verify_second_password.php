@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($maliciousAttack) {
             // Notify the user of the malicious attack
             $_SESSION['malicious_attack_detected'] = true;
+            $_SESSION['attack_time'] = $maliciousAttack['attack_time']; // Store attack time
         }
 
         $_SESSION['success_message'] = "Login successful!";
@@ -39,16 +40,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         // Second password is incorrect
         // Log malicious attack
-        $stmt = $pdo->prepare('INSERT INTO malicious_attacks (user_id, attack_time) VALUES (?, NOW())');
-        $stmt->execute([$_SESSION['user_id_temp']]);
+        $attackTime = (new DateTime())->format('Y-m-d H:i:s');
+        $stmt = $pdo->prepare('INSERT INTO malicious_attacks (user_id, attack_time) VALUES (?, ?)');
+        $stmt->execute([$_SESSION['user_id_temp'], $attackTime]);
 
         // Lock the account for 5 minutes
         $lockTime = (new DateTime())->add(new DateInterval('PT5M'))->format('Y-m-d H:i:s');
         $stmt = $pdo->prepare('UPDATE users SET lock_time = ? WHERE id = ?');
         $stmt->execute([$lockTime, $_SESSION['user_id_temp']]);
 
-        // Alert the user about the malicious attack
-        $_SESSION['error_message'] = "Malicious activity detected! Your account will be locked for 5 minutes.";
+        // Store attack details in session
+        $_SESSION['malicious_attack_details'] = [
+            'message' => "Malicious activity detected! Your account will be locked for 5 minutes.",
+            'attack_time' => $attackTime,
+        ];
+
         header('Location: login.php');
         exit;
     }
