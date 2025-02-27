@@ -15,7 +15,6 @@ $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
 
-// Fetch safe files from the safe_files directory
 $safeDir = 'safe_files/';
 $safeFiles = [];
 if (is_dir($safeDir)) {
@@ -47,16 +46,11 @@ if (is_dir($safeDir)) {
             height: 100vh;
             overflow: hidden;
             background-image: url('./img/bg.jpg');
-            /* Path to your background photo */
             background-size: cover;
-            /* Ensures the image covers the entire screen */
             background-position: center;
-            /* Centers the image */
             background-repeat: no-repeat;
-            /* Prevents the image from repeating */
         }
 
-        /* Optional: Add a semi-transparent overlay to improve readability */
         body::before {
             content: '';
             position: absolute;
@@ -65,18 +59,14 @@ if (is_dir($safeDir)) {
             right: 0;
             bottom: 0;
             background-color: rgba(0, 0, 0, 0.5);
-            /* Black overlay with 50% opacity */
             z-index: -1;
-            /* Ensures the overlay is behind the content */
         }
 
         .container {
             display: flex;
             align-items: center;
             gap: 20px;
-            /* Distance between scanner and safe files */
             z-index: 1;
-            /* Ensures the content is above the overlay */
         }
 
         .scanner {
@@ -85,7 +75,6 @@ if (is_dir($safeDir)) {
             border-radius: 12px;
             box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
             width: 500px;
-            /* Fixed width for the scanner */
             text-align: center;
             position: relative;
         }
@@ -96,11 +85,8 @@ if (is_dir($safeDir)) {
             border-radius: 12px;
             box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
             width: 300px;
-            /* Fixed width for the safe files section */
             max-height: 80vh;
-            /* Limit height to 80% of the viewport */
             overflow-y: auto;
-            /* Make it scrollable */
         }
 
         h1 {
@@ -120,17 +106,14 @@ if (is_dir($safeDir)) {
 
         .malware-title {
             color: #007bff;
-            /* Default Blue for Malware Scanner */
         }
 
         .file-title {
             color: #007bff;
-            /* Default Blue for File Scanner */
         }
 
         .url-title {
             color: #007bff;
-            /* Default Blue for URL Scanner */
         }
 
         .file-scan-section,
@@ -149,7 +132,6 @@ if (is_dir($safeDir)) {
 
         .file-upload-label {
             background-color: #007bff;
-            /* Blue for File Upload */
             color: white;
             cursor: pointer;
             text-align: center;
@@ -157,12 +139,10 @@ if (is_dir($safeDir)) {
 
         .file-upload-label:hover {
             background-color: #0056b3;
-            /* Darker Blue on Hover */
         }
 
         .scan-button {
             background-color: #007bff;
-            /* Blue for Scan File */
             color: white;
             border: none;
             padding: 10px 20px;
@@ -177,12 +157,10 @@ if (is_dir($safeDir)) {
 
         .scan-button:hover {
             background-color: #0056b3;
-            /* Darker Blue on Hover */
         }
 
         .scan-url-button {
             background-color: #007bff;
-            /* Blue for Scan URL */
             color: white;
             border: none;
             padding: 10px 20px;
@@ -197,7 +175,6 @@ if (is_dir($safeDir)) {
 
         .scan-url-button:hover {
             background-color: #0056b3;
-            /* Darker Blue on Hover */
         }
 
         .message {
@@ -209,13 +186,11 @@ if (is_dir($safeDir)) {
 
         .message.clean {
             color: #28a745;
-            /* Green for Clean Message */
             animation: bounce 0.5s ease-in-out;
         }
 
         .message.malware {
             color: #dc3545;
-            /* Red for Malware Message */
             animation: shake 0.5s ease-in-out;
         }
 
@@ -223,7 +198,6 @@ if (is_dir($safeDir)) {
             display: block;
             margin-top: 20px;
             color: #dc3545;
-            /* Red for Logout */
             text-decoration: none;
             display: flex;
             align-items: center;
@@ -259,12 +233,10 @@ if (is_dir($safeDir)) {
             cursor: pointer;
             font-size: 20px;
             color: #6c757d;
-            /* Gray for Refresh Icon */
         }
 
         .refresh-button:hover {
             color: #5a6268;
-            /* Darker Gray on Hover */
         }
 
         .file-name {
@@ -353,17 +325,17 @@ if (is_dir($safeDir)) {
             <button class="refresh-button" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
             <h1>Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</h1>
             <h2 class="malware-title" id="malware-title">
-                <i class="fas fa-bug"></i> <!-- Malware Icon -->
+                <i class="fas fa-bug"></i> 
                 Malware Scanner
-                <i class="fas fa-search"></i> <!-- Scanner Icon -->
+                <i class="fas fa-search"></i> 
             </h2>
 
             <!-- File Scanner Section -->
             <div class="file-scan-section">
                 <h2 class="file-title" id="file-title">
-                    <i class="fas fa-file"></i> <!-- File Icon -->
+                    <i class="fas fa-file"></i> 
                     File Scanner
-                    <i class="fas fa-search"></i> <!-- Scanner Icon -->
+                    <i class="fas fa-search"></i> 
                 </h2>
                 <input id="file-upload" type="file" name="file" onchange="displayFileName()">
                 <div class="file-name" id="file-name"></div>
@@ -376,9 +348,9 @@ if (is_dir($safeDir)) {
             <!-- URL Scanner Section -->
             <div class="url-scan-section">
                 <h2 class="url-title" id="url-title">
-                    <i class="fas fa-link"></i> <!-- URL Icon -->
+                    <i class="fas fa-link"></i> 
                     URL Scanner
-                    <i class="fas fa-search"></i> <!-- Scanner Icon -->
+                    <i class="fas fa-search"></i> 
                 </h2>
                 <input type="text" id="url-input" class="url-input" placeholder="Enter URL to scan">
                 <button class="scan-url-button" id="scan-url-button" onclick="scanURL()">
@@ -395,7 +367,7 @@ if (is_dir($safeDir)) {
                 your submission.
             </div>
             <a href="logout.php" class="logout-link">
-                <i class="fas fa-sign-out-alt"></i> <!-- Logout Icon -->
+                <i class="fas fa-sign-out-alt"></i> 
                 Logout
             </a>
         </div>
@@ -467,17 +439,16 @@ if (is_dir($safeDir)) {
                     if (data.message === "File is clean.") {
                         messageDiv.textContent = data.message + " File: " + data.fileName;
                         messageDiv.className = "message clean";
-                        updateColors('malware-title', '#28a745'); // Green
-                        updateColors('file-title', '#28a745'); // Green
-                        updateButtonColor('scan-file-button', '#28a745'); // Green
+                        updateColors('malware-title', '#28a745'); 
+                        updateColors('file-title', '#28a745'); 
+                        updateButtonColor('scan-file-button', '#28a745'); 
                     } else if (data.message.includes("Malware detected")) {
                         messageDiv.textContent = data.message + " File: " + data.fileName;
                         messageDiv.className = "message malware";
-                        updateColors('malware-title', '#dc3545'); // Red
-                        updateColors('file-title', '#dc3545'); // Red
-                        updateButtonColor('scan-file-button', '#dc3545'); // Red
+                        updateColors('malware-title', '#dc3545');
+                        updateColors('file-title', '#dc3545'); 
+                        updateButtonColor('scan-file-button', '#dc3545'); 
                     }
-                    // Reload the page to update the safe files list
                     setTimeout(() => location.reload(), 2000);
                 })
                 .catch(error => {
@@ -496,7 +467,6 @@ if (is_dir($safeDir)) {
                 return;
             }
 
-            // Simulate URL scanning (replace with actual API call)
             fetch('url_scanner.php', {
                 method: 'POST',
                 headers: {
@@ -509,15 +479,15 @@ if (is_dir($safeDir)) {
                     if (data.message === "URL is safe.") {
                         urlMessageDiv.textContent = data.message + " URL: " + data.url;
                         urlMessageDiv.className = "message clean";
-                        updateColors('malware-title', '#28a745'); // Green
-                        updateColors('url-title', '#28a745'); // Green
-                        updateButtonColor('scan-url-button', '#28a745'); // Green
+                        updateColors('malware-title', '#28a745'); 
+                        updateColors('url-title', '#28a745'); 
+                        updateButtonColor('scan-url-button', '#28a745'); 
                     } else if (data.message.includes("Malware detected")) {
                         urlMessageDiv.textContent = data.message + " URL: " + data.url;
                         urlMessageDiv.className = "message malware";
-                        updateColors('malware-title', '#dc3545'); // Red
-                        updateColors('url-title', '#dc3545'); // Red
-                        updateButtonColor('scan-url-button', '#dc3545'); // Green
+                        updateColors('malware-title', '#dc3545'); 
+                        updateColors('url-title', '#dc3545'); 
+                        updateButtonColor('scan-url-button', '#dc3545'); 
                     }
                 })
                 .catch(error => {

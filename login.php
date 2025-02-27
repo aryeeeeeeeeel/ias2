@@ -1,36 +1,31 @@
 <?php
 session_start();
 
-// Check for any success or error messages
 if (isset($_SESSION['success_message'])) {
     $success = $_SESSION['success_message'];
-    unset($_SESSION['success_message']); // Remove the message after displaying it
+    unset($_SESSION['success_message']); 
 }
 
 if (isset($_SESSION['error_message'])) {
     $error = $_SESSION['error_message'];
-    unset($_SESSION['error_message']); // Remove the message after displaying it
+    unset($_SESSION['error_message']);
 }
 
-// Check for malicious attack details
 if (isset($_SESSION['malicious_attack_details'])) {
     $maliciousAttackDetails = $_SESSION['malicious_attack_details'];
-    unset($_SESSION['malicious_attack_details']); // Remove the details after displaying them
+    unset($_SESSION['malicious_attack_details']); 
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get the input data
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // Fetch the user from the database based on email
-    require 'db.php';  // Include your database connection here
+    require 'db.php'; 
     $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
     if ($user) {
-        // Check if the account is locked due to too many failed attempts
         $failedAttempts = $user['failed_attempts'];
         $lockTime = $user['lock_time'];
         $currentTime = new DateTime();
@@ -42,26 +37,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         if ($user && password_verify($password, $user['password'])) {
-            // Email and password are correct
-            $_SESSION['user_id_temp'] = $user['id']; // Store user ID temporarily
+            $_SESSION['user_id_temp'] = $user['id']; 
 
-            // Check for malicious attacks
             $stmt = $pdo->prepare('SELECT * FROM malicious_attacks WHERE user_id = ? ORDER BY attack_time DESC');
             $stmt->execute([$user['id']]);
             $maliciousAttack = $stmt->fetch();
 
             if ($maliciousAttack) {
-                // Notify the user of the malicious attack
                 $_SESSION['malicious_attack_detected'] = true;
             }
 
-            header('Location: login_step2.php'); // Redirect to the second step
+            header('Location: login_step2.php');
             exit;
         } else {
-            // Password is incorrect
             $failedAttempts++;
 
-            // Lock the account after 5 failed attempts
             if ($failedAttempts >= 5) {
                 $lockTime = $currentTime->add(new DateInterval('PT5M'))->format('Y-m-d H:i:s');
                 $stmt = $pdo->prepare('UPDATE users SET failed_attempts = ?, lock_time = ? WHERE id = ?');
@@ -69,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 $_SESSION['error_message'] = "Too many failed attempts. Your account is locked for 5 minutes.";
             } else {
-                // Update failed attempts
                 $stmt = $pdo->prepare('UPDATE users SET failed_attempts = ? WHERE id = ?');
                 $stmt->execute([$failedAttempts, $user['id']]);
 
@@ -80,7 +69,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
     } else {
-        // User not found
         $_SESSION['error_message'] = "Invalid email or password.";
         header('Location: login.php');
         exit;

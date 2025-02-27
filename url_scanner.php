@@ -6,9 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     $url = $data['url'];
 
-    // Placeholder function to simulate URL scanning
     function scanURL($url) {
-        // Simulate a list of malicious URLs
         $maliciousURLs = [
             'malware.com',
             'evil.com',

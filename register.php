@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_start(); // Start session to store messages
+session_start();
 
 require 'db.php';
 
@@ -19,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $second_password = $_POST['second_password'];
     $confirm_second_password = $_POST['confirm_second_password'];
 
-    // Validate email format
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $_SESSION['error_message'] = "Please enter a valid email address.";
         header('Location: register.php');
@@ -33,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         header('Location: register.php');
         exit;
     } else {
-        // Check if email already exists
         $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
         $stmt->execute([$email]);
         if ($stmt->fetch()) {
@@ -41,24 +39,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header('Location: register.php');
             exit;
         } else {
-            // Hash the password
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-            // Insert new user into the database
             $stmt = $pdo->prepare('INSERT INTO users (first_name, middle_name, last_name, email, password) VALUES (?, ?, ?, ?, ?)');
             $stmt->execute([$first_name, $middle_name, $last_name, $email, $hashedPassword]);
 
-            // Get the last inserted user ID
             $user_id = $pdo->lastInsertId();
 
-            // Hash the second password
             $hashedSecondPassword = password_hash($second_password, PASSWORD_BCRYPT);
 
-            // Insert the second password into the user_second_passwords table
             $stmt = $pdo->prepare('INSERT INTO user_second_passwords (user_id, second_password) VALUES (?, ?)');
             $stmt->execute([$user_id, $hashedSecondPassword]);
 
-            // Success message
             $_SESSION['success_message'] = "Registration successful. Please log in.";
             header('Location: login.php');
             exit;
@@ -221,27 +213,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             const secondPassword = document.getElementById('second_password').value;
             const confirmSecondPassword = document.getElementById('confirm_second_password').value;
 
-            // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 alert("Please enter a valid email address.");
                 return false;
             }
 
-            // Validate password complexity
             const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
             if (!passwordRegex.test(password)) {
                 alert("Password must be at least 8 characters long, with 1 uppercase letter, 1 lowercase letter, and 1 number.");
                 return false;
             }
 
-            // Validate password match
             if (password !== confirmPassword) {
                 alert("Passwords do not match.");
                 return false;
             }
 
-            // Validate second password match
             if (secondPassword !== confirmSecondPassword) {
                 alert("Second passwords do not match.");
                 return false;
