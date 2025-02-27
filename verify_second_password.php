@@ -23,6 +23,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['user_id'] = $_SESSION['user_id_temp']; // Store user ID in session
         unset($_SESSION['user_id_temp']); // Clear temporary session data
 
+        // Check for malicious attacks
+        $stmt = $pdo->prepare('SELECT * FROM malicious_attacks WHERE user_id = ? ORDER BY attack_time DESC');
+        $stmt->execute([$_SESSION['user_id']]);
+        $maliciousAttack = $stmt->fetch();
+
+        if ($maliciousAttack) {
+            // Notify the user of the malicious attack
+            $_SESSION['malicious_attack_detected'] = true;
+        }
+
         $_SESSION['success_message'] = "Login successful!";
         header('Location: dashboard.php');
         exit;
@@ -32,16 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare('INSERT INTO malicious_attacks (user_id, attack_time) VALUES (?, NOW())');
         $stmt->execute([$_SESSION['user_id_temp']]);
 
-        // Lock the user's account
-        $lockTime = (new DateTime())->add(new DateInterval('PT5M'))->format('Y-m-d H:i:s'); // Lock for 5 minutes
+        // Lock the account for 5 minutes
+        $lockTime = (new DateTime())->add(new DateInterval('PT5M'))->format('Y-m-d H:i:s');
         $stmt = $pdo->prepare('UPDATE users SET lock_time = ? WHERE id = ?');
         $stmt->execute([$lockTime, $_SESSION['user_id_temp']]);
 
         // Alert the user about the malicious attack
-        $_SESSION['malicious_attack_detected'] = true;
-
-        $_SESSION['error_message'] = "Invalid second password.";
-        header('Location: login_step2.php');
+        $_SESSION['error_message'] = "Malicious activity detected! Your account will be locked for 5 minutes.";
+        header('Location: login.php');
         exit;
     }
 }

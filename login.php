@@ -39,10 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Email and password are correct
             $_SESSION['user_id_temp'] = $user['id']; // Store user ID temporarily
 
-            // Reset failed attempts and lock time
-            $stmt = $pdo->prepare('UPDATE users SET failed_attempts = 0, lock_time = NULL WHERE id = ?');
-            $stmt->execute([$user['id']]);
-
             // Check for malicious attacks
             $stmt = $pdo->prepare('SELECT * FROM malicious_attacks WHERE user_id = ? ORDER BY attack_time DESC');
             $stmt->execute([$user['id']]);
@@ -173,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <?php if (isset($_SESSION['malicious_attack_detected'])): ?>
         <script>
-            alert("We've detected a malicious attack. Please change your password immediately.");
+            alert("We've detected malicious activity earlier. Please change your password immediately!");
         </script>
         <?php unset($_SESSION['malicious_attack_detected']); ?>
     <?php endif; ?>
