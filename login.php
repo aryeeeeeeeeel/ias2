@@ -35,17 +35,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
 
-        // Verify the password
-        if (password_verify($password, $user['password'])) {
-            // Login successful
-            $_SESSION['user_id'] = $user['id'];  // Store user ID in session for authenticated access
+        if ($user && password_verify($password, $user['password'])) {
+            // Email and password are correct
+            $_SESSION['user_id_temp'] = $user['id']; // Store user ID temporarily
 
             // Reset failed attempts and lock time
             $stmt = $pdo->prepare('UPDATE users SET failed_attempts = 0, lock_time = NULL WHERE id = ?');
             $stmt->execute([$user['id']]);
 
-            $_SESSION['success_message'] = "Login successful!";
-            header('Location: dashboard.php');  // Redirect to the dashboard after successful login
+            // Check for malicious attacks
+            $stmt = $pdo->prepare('SELECT * FROM malicious_attacks WHERE user_id = ? ORDER BY attack_time DESC');
+            $stmt->execute([$user['id']]);
+            $maliciousAttack = $stmt->fetch();
+
+            if ($maliciousAttack) {
+                // Notify the user of the malicious attack
+                $_SESSION['malicious_attack_detected'] = true;
+            }
+
+            header('Location: login_step2.php'); // Redirect to the second step
             exit;
         } else {
             // Password is incorrect
@@ -85,7 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -162,6 +169,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <?php if (isset($success) && $success): ?>
         <p class="success"><?php echo $success; ?></p>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['malicious_attack_detected'])): ?>
+        <script>
+            alert("We've detected a malicious attack. Please change your password immediately.");
+        </script>
+        <?php unset($_SESSION['malicious_attack_detected']); ?>
     <?php endif; ?>
 
     <form method="post">

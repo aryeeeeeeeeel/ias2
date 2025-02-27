@@ -14,6 +14,18 @@ require 'db.php';
 $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch();
+
+// Fetch safe files from the safe_files directory
+$safeDir = 'safe_files/';
+$safeFiles = [];
+if (is_dir($safeDir)) {
+    $files = scandir($safeDir);
+    foreach ($files as $file) {
+        if ($file !== '.' && $file !== '..') {
+            $safeFiles[] = $file;
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -22,29 +34,73 @@ $user = $stmt->fetch();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Malware Scanner</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow: hidden;
+            background-image: url('./img/bg.jpg');
+            /* Path to your background photo */
+            background-size: cover;
+            /* Ensures the image covers the entire screen */
+            background-position: center;
+            /* Centers the image */
+            background-repeat: no-repeat;
+            /* Prevents the image from repeating */
+        }
+
+        /* Optional: Add a semi-transparent overlay to improve readability */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Black overlay with 50% opacity */
+            z-index: -1;
+            /* Ensures the overlay is behind the content */
         }
 
         .container {
-            background-color: white;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            /* Distance between scanner and safe files */
+            z-index: 1;
+            /* Ensures the content is above the overlay */
+        }
+
+        .scanner {
+            background-color: rgba(255, 255, 255, 0.9);
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
-            max-width: 500px;
-            width: 100%;
+            width: 500px;
+            /* Fixed width for the scanner */
             text-align: center;
             position: relative;
+        }
+
+        .safe-files {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            /* Fixed width for the safe files section */
+            max-height: 80vh;
+            /* Limit height to 80% of the viewport */
+            overflow-y: auto;
+            /* Make it scrollable */
         }
 
         h1 {
@@ -56,41 +112,57 @@ $user = $stmt->fetch();
         h2 {
             margin-bottom: 20px;
             font-size: 20px;
-            color: #007bff;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
         }
 
-        .upload-section {
+        .malware-title {
+            color: #007bff;
+            /* Default Blue for Malware Scanner */
+        }
+
+        .file-title {
+            color: #007bff;
+            /* Default Blue for File Scanner */
+        }
+
+        .url-title {
+            color: #007bff;
+            /* Default Blue for URL Scanner */
+        }
+
+        .file-scan-section,
+        .url-scan-section {
             margin-top: 20px;
         }
 
-        input[type="file"] {
-            display: none;
-        }
-
-        .file-upload {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
+        .file-upload-label,
+        .url-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            cursor: pointer;
-            display: inline-block;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
 
-        .file-upload:hover {
+        .file-upload-label {
+            background-color: #007bff;
+            /* Blue for File Upload */
+            color: white;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .file-upload-label:hover {
             background-color: #0056b3;
+            /* Darker Blue on Hover */
         }
 
         .scan-button {
             background-color: #007bff;
+            /* Blue for Scan File */
             color: white;
             border: none;
             padding: 10px 20px;
@@ -105,6 +177,27 @@ $user = $stmt->fetch();
 
         .scan-button:hover {
             background-color: #0056b3;
+            /* Darker Blue on Hover */
+        }
+
+        .scan-url-button {
+            background-color: #007bff;
+            /* Blue for Scan URL */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .scan-url-button:hover {
+            background-color: #0056b3;
+            /* Darker Blue on Hover */
         }
 
         .message {
@@ -116,18 +209,21 @@ $user = $stmt->fetch();
 
         .message.clean {
             color: #28a745;
+            /* Green for Clean Message */
             animation: bounce 0.5s ease-in-out;
         }
 
         .message.malware {
             color: #dc3545;
+            /* Red for Malware Message */
             animation: shake 0.5s ease-in-out;
         }
 
         .logout-link {
             display: block;
             margin-top: 20px;
-            color: #007bff;
+            color: #dc3545;
+            /* Red for Logout */
             text-decoration: none;
             display: flex;
             align-items: center;
@@ -162,16 +258,52 @@ $user = $stmt->fetch();
             border: none;
             cursor: pointer;
             font-size: 20px;
-            color: #007bff;
+            color: #6c757d;
+            /* Gray for Refresh Icon */
         }
 
         .refresh-button:hover {
-            color: #0056b3;
+            color: #5a6268;
+            /* Darker Gray on Hover */
         }
 
         .file-name {
             margin-top: 10px;
             color: #666;
+        }
+
+        .safe-files h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .safe-files ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .safe-files li {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .safe-files li .file-name {
+            color: #007bff;
+        }
+
+        .safe-files li .file-download {
+            color: #28a745;
+            text-decoration: none;
+        }
+
+        .safe-files li .file-download:hover {
+            text-decoration: underline;
         }
 
         @keyframes fadeIn {
@@ -216,34 +348,76 @@ $user = $stmt->fetch();
 
 <body>
     <div class="container">
-        <button class="refresh-button" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
-        <h1>Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</h1>
-        <h2>
-            <i class="fas fa-bug"></i> <!-- Malware Icon -->
-            Malware Scanner
-            <i class="fas fa-search"></i> <!-- Scanner Icon -->
-        </h2>
-        <div class="upload-section">
-            <label for="file-upload" class="file-upload">
-                <i class="fas fa-file"></i> <!-- File Icon -->
-                Choose File
-            </label>
-            <input id="file-upload" type="file" name="file" onchange="displayFileName()">
-            <div class="file-name" id="file-name"></div>
-            <button class="scan-button" onclick="scanFile()">
-                <i class="fas fa-search"></i> Scan File
-            </button>
+        <!-- Scanner Section -->
+        <div class="scanner">
+            <button class="refresh-button" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+            <h1>Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</h1>
+            <h2 class="malware-title" id="malware-title">
+                <i class="fas fa-bug"></i> <!-- Malware Icon -->
+                Malware Scanner
+                <i class="fas fa-search"></i> <!-- Scanner Icon -->
+            </h2>
+
+            <!-- File Scanner Section -->
+            <div class="file-scan-section">
+                <h2 class="file-title" id="file-title">
+                    <i class="fas fa-file"></i> <!-- File Icon -->
+                    File Scanner
+                    <i class="fas fa-search"></i> <!-- Scanner Icon -->
+                </h2>
+                <input id="file-upload" type="file" name="file" onchange="displayFileName()">
+                <div class="file-name" id="file-name"></div>
+                <button class="scan-button" id="scan-file-button" onclick="scanFile()">
+                    <i class="fas fa-search"></i> Scan File
+                </button>
+                <div class="message" id="message"></div>
+            </div>
+
+            <!-- URL Scanner Section -->
+            <div class="url-scan-section">
+                <h2 class="url-title" id="url-title">
+                    <i class="fas fa-link"></i> <!-- URL Icon -->
+                    URL Scanner
+                    <i class="fas fa-search"></i> <!-- Scanner Icon -->
+                </h2>
+                <input type="text" id="url-input" class="url-input" placeholder="Enter URL to scan">
+                <button class="scan-url-button" id="scan-url-button" onclick="scanURL()">
+                    <i class="fas fa-search"></i> Scan URL
+                </button>
+                <div class="message" id="url-message"></div>
+            </div>
+
+            <div class="terms">
+                By submitting data above, you are agreeing to our <a href="#">Terms of Service</a> and <a
+                    href="#">Privacy
+                    Notice</a>. Please do not submit any personal information; we are not responsible for the contents
+                of
+                your submission.
+            </div>
+            <a href="logout.php" class="logout-link">
+                <i class="fas fa-sign-out-alt"></i> <!-- Logout Icon -->
+                Logout
+            </a>
         </div>
-        <div class="message" id="message"></div>
-        <div class="terms">
-            By submitting data above, you are agreeing to our <a href="#">Terms of Service</a> and <a href="#">Privacy
-                Notice</a>. Please do not submit any personal information; we are not responsible for the contents of
-            your submission.
+
+        <!-- Safe Files Section -->
+        <div class="safe-files">
+            <h3><i class="fas fa-shield-alt"></i> Safe Files</h3>
+            <?php if (!empty($safeFiles)): ?>
+                <ul>
+                    <?php foreach ($safeFiles as $file): ?>
+                        <li>
+                            <span class="file-name"><?php echo htmlspecialchars($file); ?></span>
+                            <a href="<?php echo $safeDir . rawurlencode($file); ?>" class="file-download" download>
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else: ?>
+                <p>No safe files found.</p>
+            <?php endif; ?>
         </div>
-        <a href="logout.php" class="logout-link">
-            <i class="fas fa-sign-out-alt"></i> <!-- Logout Icon -->
-            Logout
-        </a>
     </div>
 
     <script>
@@ -254,6 +428,20 @@ $user = $stmt->fetch();
                 fileNameDiv.textContent = "Selected File: " + fileInput.files[0].name;
             } else {
                 fileNameDiv.textContent = "";
+            }
+        }
+
+        function updateColors(elementId, color) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.style.color = color;
+            }
+        }
+
+        function updateButtonColor(buttonId, color) {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.style.backgroundColor = color;
             }
         }
 
@@ -279,14 +467,62 @@ $user = $stmt->fetch();
                     if (data.message === "File is clean.") {
                         messageDiv.textContent = data.message + " File: " + data.fileName;
                         messageDiv.className = "message clean";
-                    } else {
-                        messageDiv.textContent = "Malware Detected! Please Delete The File '" + data.fileName + "'.";
+                        updateColors('malware-title', '#28a745'); // Green
+                        updateColors('file-title', '#28a745'); // Green
+                        updateButtonColor('scan-file-button', '#28a745'); // Green
+                    } else if (data.message.includes("Malware detected")) {
+                        messageDiv.textContent = data.message + " File: " + data.fileName;
                         messageDiv.className = "message malware";
+                        updateColors('malware-title', '#dc3545'); // Red
+                        updateColors('file-title', '#dc3545'); // Red
+                        updateButtonColor('scan-file-button', '#dc3545'); // Red
                     }
+                    // Reload the page to update the safe files list
+                    setTimeout(() => location.reload(), 2000);
                 })
                 .catch(error => {
                     messageDiv.textContent = "An error occurred while scanning the file.";
                     messageDiv.className = "message";
+                });
+        }
+
+        function scanURL() {
+            const urlInput = document.getElementById('url-input');
+            const urlMessageDiv = document.getElementById('url-message');
+
+            if (!urlInput.value) {
+                urlMessageDiv.textContent = "Please enter a URL.";
+                urlMessageDiv.className = "message";
+                return;
+            }
+
+            // Simulate URL scanning (replace with actual API call)
+            fetch('url_scanner.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: urlInput.value }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === "URL is safe.") {
+                        urlMessageDiv.textContent = data.message + " URL: " + data.url;
+                        urlMessageDiv.className = "message clean";
+                        updateColors('malware-title', '#28a745'); // Green
+                        updateColors('url-title', '#28a745'); // Green
+                        updateButtonColor('scan-url-button', '#28a745'); // Green
+                    } else if (data.message.includes("Malware detected")) {
+                        urlMessageDiv.textContent = data.message + " URL: " + data.url;
+                        urlMessageDiv.className = "message malware";
+                        updateColors('malware-title', '#dc3545'); // Red
+                        updateColors('url-title', '#dc3545'); // Red
+                        updateButtonColor('scan-url-button', '#dc3545'); // Green
+                    }
+                })
+                .catch(error => {
+                    urlMessageDiv.textContent = "An error occurred while scanning the URL.";
+                    urlMessageDiv.className = "message";
                 });
         }
     </script>

@@ -16,6 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
+    $second_password = $_POST['second_password'];
+    $confirm_second_password = $_POST['confirm_second_password'];
 
     // Validate email format
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -24,6 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     } elseif ($password !== $confirm_password) {
         $_SESSION['error_message'] = "Passwords do not match.";
+        header('Location: register.php');
+        exit;
+    } elseif ($second_password !== $confirm_second_password) {
+        $_SESSION['error_message'] = "Second passwords do not match.";
         header('Location: register.php');
         exit;
     } else {
@@ -41,6 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Insert new user into the database
             $stmt = $pdo->prepare('INSERT INTO users (first_name, middle_name, last_name, email, password) VALUES (?, ?, ?, ?, ?)');
             $stmt->execute([$first_name, $middle_name, $last_name, $email, $hashedPassword]);
+
+            // Get the last inserted user ID
+            $user_id = $pdo->lastInsertId();
+
+            // Hash the second password
+            $hashedSecondPassword = password_hash($second_password, PASSWORD_BCRYPT);
+
+            // Insert the second password into the user_second_passwords table
+            $stmt = $pdo->prepare('INSERT INTO user_second_passwords (user_id, second_password) VALUES (?, ?)');
+            $stmt->execute([$user_id, $hashedSecondPassword]);
 
             // Success message
             $_SESSION['success_message'] = "Registration successful. Please log in.";
@@ -174,6 +190,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <span class="tooltiptext">Must match the password</span>
         </div>
 
+        <div class="password-toggle tooltip">
+            <input type="password" name="second_password" id="second_password" placeholder="Second Password" required>
+            <span class="toggle-btn" onclick="togglePassword('second_password')">👁️</span>
+            <span class="tooltiptext">This is your secondary password for added security.</span>
+        </div>
+
+        <div class="password-toggle tooltip">
+            <input type="password" name="confirm_second_password" id="confirm_second_password"
+                placeholder="Confirm Second Password" required>
+            <span class="toggle-btn" onclick="togglePassword('confirm_second_password')">👁️</span>
+            <span class="tooltiptext">Must match the second password</span>
+        </div>
+
         <button type="submit">Register</button>
     </form>
     <p>Already have an account? <a href="login.php">Login here</a>.</p>
@@ -189,6 +218,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
+            const secondPassword = document.getElementById('second_password').value;
+            const confirmSecondPassword = document.getElementById('confirm_second_password').value;
 
             // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -207,6 +238,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Validate password match
             if (password !== confirmPassword) {
                 alert("Passwords do not match.");
+                return false;
+            }
+
+            // Validate second password match
+            if (secondPassword !== confirmSecondPassword) {
+                alert("Second passwords do not match.");
                 return false;
             }
 
