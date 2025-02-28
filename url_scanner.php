@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         foreach ($maliciousURLs as $maliciousURL) {
             if (strpos($url, $maliciousURL) !== false) {
-                return ["message" => "Malware detected!", "url" => $url];
+                return ["message" => "Malware detected! URL is not safe!", "url" => $url];
             }
         }
 
