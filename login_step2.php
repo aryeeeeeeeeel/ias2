@@ -48,7 +48,9 @@
 
 <body>
     <h1>Second Step Login</h1>
-    <?php if (isset($_SESSION['error_message'])): ?>
+    <?php
+    require 'db.php';
+    if (isset($_SESSION['error_message'])): ?>
         <p class="error"><?php echo $_SESSION['error_message'];
         unset($_SESSION['error_message']); ?></p>
     <?php endif; ?>

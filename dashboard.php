@@ -33,7 +33,7 @@ if (is_dir($safeDir)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malware Scanner</title>
+    <title>Malware Detector System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
@@ -320,13 +320,12 @@ if (is_dir($safeDir)) {
 
 <body>
     <div class="container">
-        <!-- Scanner Section -->
         <div class="scanner">
             <button class="refresh-button" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
             <h1>Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</h1>
             <h2 class="malware-title" id="malware-title">
                 <i class="fas fa-bug"></i> 
-                Malware Scanner
+                Malware Detector System
                 <i class="fas fa-search"></i> 
             </h2>
 
@@ -381,7 +380,7 @@ if (is_dir($safeDir)) {
                         <li>
                             <span class="file-name"><?php echo htmlspecialchars($file); ?></span>
                             <a href="<?php echo $safeDir . rawurlencode($file); ?>" class="file-download" download>
-                                <i class="fas fa-download"></i> Download
+                                <i class="fas fa-download"></i> 
                             </a>
                         </li>
                     <?php endforeach; ?>
