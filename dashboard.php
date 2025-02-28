@@ -25,6 +25,15 @@ if (is_dir($safeDir)) {
         }
     }
 }
+if (isset($_SESSION['malicious_attack_detected'])) {
+    $maliciousAttackDetected = true;
+    $attackTime = $_SESSION['attack_time'];
+    unset($_SESSION['malicious_attack_detected']);
+    unset($_SESSION['attack_time']);
+} else {
+    $maliciousAttackDetected = false;
+}
+?>
 ?>
 
 <!DOCTYPE html>
@@ -324,17 +333,17 @@ if (is_dir($safeDir)) {
             <button class="refresh-button" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
             <h1>Welcome, <?php echo htmlspecialchars($user['first_name']); ?>!</h1>
             <h2 class="malware-title" id="malware-title">
-                <i class="fas fa-bug"></i> 
+                <i class="fas fa-bug"></i>
                 Malware Detector System
-                <i class="fas fa-search"></i> 
+                <i class="fas fa-search"></i>
             </h2>
 
             <!-- File Scanner Section -->
             <div class="file-scan-section">
                 <h2 class="file-title" id="file-title">
-                    <i class="fas fa-file"></i> 
+                    <i class="fas fa-file"></i>
                     File Scanner
-                    <i class="fas fa-search"></i> 
+                    <i class="fas fa-search"></i>
                 </h2>
                 <input id="file-upload" type="file" name="file" onchange="displayFileName()">
                 <div class="file-name" id="file-name"></div>
@@ -347,9 +356,9 @@ if (is_dir($safeDir)) {
             <!-- URL Scanner Section -->
             <div class="url-scan-section">
                 <h2 class="url-title" id="url-title">
-                    <i class="fas fa-link"></i> 
+                    <i class="fas fa-link"></i>
                     URL Scanner
-                    <i class="fas fa-search"></i> 
+                    <i class="fas fa-search"></i>
                 </h2>
                 <input type="text" id="url-input" class="url-input" placeholder="Enter URL to scan">
                 <button class="scan-url-button" id="scan-url-button" onclick="scanURL()">
@@ -366,7 +375,7 @@ if (is_dir($safeDir)) {
                 your submission.
             </div>
             <a href="logout.php" class="logout-link">
-                <i class="fas fa-sign-out-alt"></i> 
+                <i class="fas fa-sign-out-alt"></i>
                 Logout
             </a>
         </div>
@@ -380,7 +389,7 @@ if (is_dir($safeDir)) {
                         <li>
                             <span class="file-name"><?php echo htmlspecialchars($file); ?></span>
                             <a href="<?php echo $safeDir . rawurlencode($file); ?>" class="file-download" download>
-                                <i class="fas fa-download"></i> 
+                                <i class="fas fa-download"></i>
                             </a>
                         </li>
                     <?php endforeach; ?>
@@ -390,6 +399,12 @@ if (is_dir($safeDir)) {
             <?php endif; ?>
         </div>
     </div>
+
+    <?php if ($maliciousAttackDetected): ?>
+        <script>
+            alert("We've detected malicious activity earlier. Please change your password immediately!\nAttack Time: <?php echo $attackTime; ?>");
+        </script>
+    <?php endif; ?>
 
     <script>
         function displayFileName() {
@@ -438,15 +453,15 @@ if (is_dir($safeDir)) {
                     if (data.message === "File is clean.") {
                         messageDiv.textContent = data.message + " File: " + data.fileName;
                         messageDiv.className = "message clean";
-                        updateColors('malware-title', '#28a745'); 
-                        updateColors('file-title', '#28a745'); 
-                        updateButtonColor('scan-file-button', '#28a745'); 
+                        updateColors('malware-title', '#28a745');
+                        updateColors('file-title', '#28a745');
+                        updateButtonColor('scan-file-button', '#28a745');
                     } else if (data.message.includes("Malware detected")) {
                         messageDiv.textContent = data.message + " File: " + data.fileName;
                         messageDiv.className = "message malware";
                         updateColors('malware-title', '#dc3545');
-                        updateColors('file-title', '#dc3545'); 
-                        updateButtonColor('scan-file-button', '#dc3545'); 
+                        updateColors('file-title', '#dc3545');
+                        updateButtonColor('scan-file-button', '#dc3545');
                     }
                     setTimeout(() => location.reload(), 2000);
                 })
@@ -478,15 +493,15 @@ if (is_dir($safeDir)) {
                     if (data.message === "URL is safe.") {
                         urlMessageDiv.textContent = data.message + " URL: " + data.url;
                         urlMessageDiv.className = "message clean";
-                        updateColors('malware-title', '#28a745'); 
-                        updateColors('url-title', '#28a745'); 
-                        updateButtonColor('scan-url-button', '#28a745'); 
+                        updateColors('malware-title', '#28a745');
+                        updateColors('url-title', '#28a745');
+                        updateButtonColor('scan-url-button', '#28a745');
                     } else if (data.message.includes("Malware detected")) {
                         urlMessageDiv.textContent = data.message + " URL: " + data.url;
                         urlMessageDiv.className = "message malware";
-                        updateColors('malware-title', '#dc3545'); 
-                        updateColors('url-title', '#dc3545'); 
-                        updateButtonColor('scan-url-button', '#dc3545'); 
+                        updateColors('malware-title', '#dc3545');
+                        updateColors('url-title', '#dc3545');
+                        updateButtonColor('scan-url-button', '#dc3545');
                     }
                 })
                 .catch(error => {
